@@ -82,6 +82,24 @@ namespace Restivus.Tests
             );
         }
 
+        [Fact]
+        public async Task ThrowsExceptionInsteadOfCallingDeserialize()
+        {
+            var client = new GitHubRestClient();
+
+            Func<HttpResponseMessage, IEnumerable<User>> _WillNotBeInvokedOnFailure = (response) =>
+            {
+                return new[] { new User() };
+            };
+
+            var users = await client.Get().SendAsync(
+                "/some_illegal_path_because_i_know_this_doesnt_exist",
+                _WillNotBeInvokedOnFailure
+            );
+
+            Assert.NotEmpty(users);
+        }
+
         static async Task<T> _Deserialize<T>(HttpResponseMessage response)
         {
             return JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync());
